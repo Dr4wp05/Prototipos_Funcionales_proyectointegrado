@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Lector - Sistema de Inventario</title>
+    <style>
+        /* Variables de colores según la paleta */
+        :root {
+            --primary-orange: #E94E1A;
+            --primary-dark-blue: #22223B;
+            --primary-gray-blue: #4A4E69;
+            --secondary-lavender: #9A8C98;
+            --secondary-cream: #F2E9E4;
+        }
+        
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--secondary-cream);
+            color: var(--primary-dark-blue);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Barra lateral izquierda - Navegación principal */
+        .sidebar-left {
+            width: 220px;
+            background-color: var(--primary-dark-blue);
+            color: white;
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left .logo {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--primary-gray-blue);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-left .logo h1 {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+        }
+        
+        .sidebar-left nav ul {
+            list-style: none;
+        }
+        
+        .sidebar-left nav li {
+            margin: 5px 0;
+        }
+        
+        .sidebar-left nav a {
+            display: block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-left nav a:hover, 
+        .sidebar-left nav a.active {
+            background-color: var(--primary-gray-blue);
+            border-left: 4px solid var(--primary-orange);
+        }
+        
+        /* Contenido principal */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            margin-right: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--secondary-lavender);
+        }
+        
+        .header h2 {
+            color: var(--primary-dark-blue);
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-bar input {
+            padding: 8px 15px;
+            border: 1px solid var(--secondary-lavender);
+            border-radius: 4px;
+            width: 300px;
+        }
+        
+        .search-bar button {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Filtros */
+        .filters-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .filters-section h3 {
+            margin-bottom: 15px;
+            color: var(--primary-gray-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        
+        .filter-group h4 {
+            margin-bottom: 10px;
+            color: var(--primary-dark-blue);
+            font-size: 1rem;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            background-color: var(--secondary-cream);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-option:hover {
+            background-color: var(--secondary-lavender);
+            color: white;
+        }
+        
+        .filter-option.active {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+        
+        .filter-option input {
+            margin-right: 5px;
+        }
+        
+        /* Lista de activos */
+        .assets-list {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .assets-list h3 {
+            margin-bottom: 15px;
+            color: var(--primary-gray-blue);
+        }
+        
+        .asset-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid var(--secondary-cream);
+            transition: background-color 0.3s;
+        }
+        
+        .asset-item:hover {
+            background-color: var(--secondary-cream);
+        }
+        
+        .asset-item:last-child {
+            border-bottom: none;
+        }
+        
+        .asset-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--secondary-lavender);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .asset-info {
+            flex: 1;
+        }
+        
+        .asset-info h4 {
+            margin-bottom: 5px;
+            color: var(--primary-dark-blue);
+        }
+        
+        .asset-details {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: var(--primary-gray-blue);
+        }
+        
+        .asset-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background-color: #e6f7e9;
+            color: #2e7d32;
+        }
+        
+        .status-inactive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        /* Barra lateral derecha */
+        .sidebar-right {
+            width: 250px;
+            background-color: white;
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+        
+        .user-profile {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--secondary-cream);
+            margin-bottom: 20px;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--secondary-lavender);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .user-profile h3 {
+            margin-bottom: 5px;
+            color: var(--primary-dark-blue);
+        }
+        
+        .user-profile p {
+            color: var(--primary-gray-blue);
+            font-size: 0.9rem;
+        }
+        
+        .sidebar-right nav ul {
+            list-style: none;
+        }
+        
+        .sidebar-right nav li {
+            margin: 10px 0;
+        }
+        
+        .sidebar-right nav a {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--primary-dark-blue);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-right nav a:hover {
+            background-color: var(--secondary-cream);
+        }
+        
+        .sidebar-right nav i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Botones de acción */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-lavender);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar-left {
+                width: 200px;
+            }
+            
+            .main-content {
+                margin-left: 200px;
+                margin-right: 220px;
+            }
+            
+            .sidebar-right {
+                width: 220px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar-left {
+                width: 70px;
+            }
+            
+            .sidebar-left .logo h1,
+            .sidebar-left nav span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                margin-right: 200px;
+            }
+            
+            .sidebar-right {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra lateral izquierda - Navegación -->
+    <div class="sidebar-left">
+        <div class="logo">
+            <h1>INVENTARIO</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" class="active">📋 Vista Lector</a></li>
+                <li><a href="#">📊 Gestión Inventario</a></li>
+                <li><a href="#">👥 Gestión Usuarios</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Vista Lector - Sistema de Inventario</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar activos...">
+                <button>Buscar</button>
+            </div>
+        </div>
+        
+        <!-- Sección de filtros -->
+        <div class="filters-section">
+            <h3>Filtros de Búsqueda 
+                <span style="font-size: 0.9rem; font-weight: normal;">
+                    <a href="#" style="color: var(--primary-orange); text-decoration: none;">Limpiar filtros</a>
+                </span>
+            </h3>
+            
+            <div class="filter-group">
+                <h4>Tipo de Activo</h4>
+                <div class="filter-options">
+                    <div class="filter-option active">
+                        <input type="checkbox" id="tipo-computador" checked>
+                        <label for="tipo-computador">Computador</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-laptop">
+                        <label for="tipo-laptop">Laptop</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-celular">
+                        <label for="tipo-celular">Celular</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-tablet">
+                        <label for="tipo-tablet">Tablet</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-servidor">
+                        <label for="tipo-servidor">Servidor</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-pantalla">
+                        <label for="tipo-pantalla">Pantalla Interactiva</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="tipo-ups">
+                        <label for="tipo-ups">UPS</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h4>Marca</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="marca-hp">
+                        <label for="marca-hp">HP</label>
+                    </div>
+                    <div class="filter-option active">
+                        <input type="checkbox" id="marca-lenovo" checked>
+                        <label for="marca-lenovo">Lenovo</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="marca-dell">
+                        <label for="marca-dell">Dell</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="marca-apple">
+                        <label for="marca-apple">Apple</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="marca-samsung">
+                        <label for="marca-samsung">Samsung</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h4>Estado</h4>
+                <div class="filter-options">
+                    <div class="filter-option active">
+                        <input type="checkbox" id="estado-activo" checked>
+                        <label for="estado-activo">Activo</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="estado-mantenimiento">
+                        <label for="estado-mantenimiento">En Mantenimiento</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="estado-baja">
+                        <label for="estado-baja">Dado de Baja</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h4>Departamento</h4>
+                <div class="filter-options">
+                    <div class="filter-option">
+                        <input type="checkbox" id="depto-rh">
+                        <label for="depto-rh">Recursos Humanos</label>
+                    </div>
+                    <div class="filter-option active">
+                        <input type="checkbox" id="depto-ti" checked>
+                        <label for="depto-ti">Tecnologías de Información</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="depto-contabilidad">
+                        <label for="depto-contabilidad">Contabilidad</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="depto-ventas">
+                        <label for="depto-ventas">Ventas</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary">Aplicar Filtros</button>
+                <button class="btn btn-secondary">Generar Reporte</button>
+            </div>
+        </div>
+        
+        <!-- Lista de activos -->
+        <div class="assets-list">
+            <h3>Activos Encontrados (5)</h3>
+            
+            <div class="asset-item">
+                <div class="asset-icon">💻</div>
+                <div class="asset-info">
+                    <h4>Laptop Lenovo ThinkPad X1 Carbon</h4>
+                    <div class="asset-details">
+                        <span>Serie: LP-2023-001</span>
+                        <span>Usuario: María González</span>
+                        <span>Departamento: TI</span>
+                        <span>Fecha Compra: 15/03/2023</span>
+                    </div>
+                </div>
+                <div class="asset-status status-active">Activo</div>
+            </div>
+            
+            <div class="asset-item">
+                <div class="asset-icon">🖥️</div>
+                <div class="asset-info">
+                    <h4>Computador de Escritorio HP EliteDesk</h4>
+                    <div class="asset-details">
+                        <span>Serie: DE-2022-045</span>
+                        <span>Usuario: Carlos Mendoza</span>
+                        <span>Departamento: Contabilidad</span>
+                        <span>Fecha Compra: 22/07/2022</span>
+                    </div>
+                </div>
+                <div class="asset-status status-active">Activo</div>
+            </div>
+            
+            <div class="asset-item">
+                <div class="asset-icon">📱</div>
+                <div class="asset-info">
+                    <h4>Celular Samsung Galaxy S23</h4>
+                    <div class="asset-details">
+                        <span>Serie: CL-2023-078</span>
+                        <span>Usuario: Ana Silva</span>
+                        <span>Departamento: Ventas</span>
+                        <span>Fecha Compra: 10/05/2023</span>
+                    </div>
+                </div>
+                <div class="asset-status status-inactive">En Reparación</div>
+            </div>
+            
+            <div class="asset-item">
+                <div class="asset-icon">🖥️</div>
+                <div class="asset-info">
+                    <h4>Servidor Dell PowerEdge R740</h4>
+                    <div class="asset-details">
+                        <span>Serie: SV-2021-012</span>
+                        <span>Usuario: Data Center</span>
+                        <span>Departamento: TI</span>
+                        <span>Fecha Compra: 30/11/2021</span>
+                    </div>
+                </div>
+                <div class="asset-status status-active">Activo</div>
+            </div>
+            
+            <div class="asset-item">
+                <div class="asset-icon">💻</div>
+                <div class="asset-info">
+                    <h4>Laptop Dell Latitude 5430</h4>
+                    <div class="asset-details">
+                        <span>Serie: LP-2022-089</span>
+                        <span>Usuario: Roberto Alveal</span>
+                        <span>Departamento: TI</span>
+                        <span>Fecha Compra: 05/09/2022</span>
+                    </div>
+                </div>
+                <div class="asset-status status-active">Activo</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barra lateral derecha -->
+    <div class="sidebar-right">
+        <div class="user-profile">
+            <div class="user-avatar">👤</div>
+            <h3>Alonso Rodríguez</h3>
+            <p>Rol: Lector</p>
+            <p>Departamento: TI</p>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="#"><i>👤</i> Perfil de Usuario</a></li>
+                <li><a href="#"><i>⚙️</i> Ajustes</a></li>
+                <li><a href="#"><i>🎫</i> Tickets</a></li>
+                <li><a href="#"><i>📊</i> Dashboard</a></li>
+                <li><a href="#"><i>📋</i> Reportes Guardados</a></li>
+                <li><a href="#"><i>❓</i> Ayuda</a></li>
+                <li><a href="#"><i>🚪</i> Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: var(--secondary-cream); border-radius: 8px;">
+            <h4 style="margin-bottom: 10px; color: var(--primary-dark-blue);">Información del Sistema</h4>
+            <p style="font-size: 0.9rem; color: var(--primary-gray-blue);">
+                Versión: 1.0.0<br>
+                Última actualización: 15/09/2023<br>
+                Activos registrados: 247
+            </p>
+        </div>
+    </div>
+</body>
+</html>

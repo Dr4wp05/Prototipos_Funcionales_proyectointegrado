@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Sistema de Inventario</title>
+    <style>
+        /* Variables de colores según la paleta */
+        :root {
+            --primary-orange: #E94E1A;
+            --primary-dark-blue: #22223B;
+            --primary-gray-blue: #4A4E69;
+            --secondary-lavender: #9A8C98;
+            --secondary-cream: #F2E9E4;
+        }
+        
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--secondary-cream);
+            color: var(--primary-dark-blue);
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Barra lateral izquierda - Navegación principal */
+        .sidebar-left {
+            width: 220px;
+            background-color: var(--primary-dark-blue);
+            color: white;
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left .logo {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--primary-gray-blue);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-left .logo h1 {
+            font-size: 1.5rem;
+            color: var(--primary-orange);
+        }
+        
+        .sidebar-left nav ul {
+            list-style: none;
+        }
+        
+        .sidebar-left nav li {
+            margin: 5px 0;
+        }
+        
+        .sidebar-left nav a {
+            display: block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-left nav a:hover {
+            background-color: var(--primary-gray-blue);
+            border-left: 4px solid var(--primary-orange);
+        }
+        
+        .sidebar-left nav a.active {
+            background-color: var(--primary-orange);
+            border-left: 4px solid white;
+        }
+        
+        /* Contenido principal */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            margin-right: 250px;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--secondary-lavender);
+        }
+        
+        .header h2 {
+            color: var(--primary-dark-blue);
+        }
+        
+        .search-bar {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-bar input {
+            padding: 8px 15px;
+            border: 1px solid var(--secondary-lavender);
+            border-radius: 4px;
+            width: 300px;
+        }
+        
+        .search-bar button {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        /* Selector de módulos */
+        .module-selector {
+            display: flex;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .module-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .module-option:hover {
+            background-color: var(--secondary-cream);
+        }
+        
+        .module-option.active {
+            background-color: var(--primary-orange);
+            color: white;
+            border-bottom: 3px solid var(--primary-dark-blue);
+        }
+        
+        /* Panel de gestión */
+        .management-panel {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--secondary-cream);
+        }
+        
+        .panel-header h3 {
+            color: var(--primary-gray-blue);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-orange);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-lavender);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #2e7d32;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #c62828;
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        /* Tablas */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .data-table th {
+            background-color: var(--secondary-cream);
+            padding: 12px 15px;
+            text-align: left;
+            color: var(--primary-dark-blue);
+            font-weight: 600;
+            border-bottom: 2px solid var(--secondary-lavender);
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--secondary-cream);
+        }
+        
+        .data-table tr:hover {
+            background-color: rgba(242, 233, 228, 0.5);
+        }
+        
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .role-root {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .role-admin {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .role-lector {
+            background-color: #e6f7e9;
+            color: #2e7d32;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            background-color: #fff3e0;
+            color: #ef6c00;
+        }
+        
+        .status-approved {
+            background-color: #e6f7e9;
+            color: #2e7d32;
+        }
+        
+        .status-rejected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .action-cell {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btn {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .edit-btn {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .approve-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .reject-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        /* Formularios */
+        .user-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--secondary-cream);
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-gray-blue);
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--secondary-lavender);
+            border-radius: 4px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        /* Barra lateral derecha */
+        .sidebar-right {
+            width: 250px;
+            background-color: white;
+            padding: 20px;
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto;
+        }
+        
+        .user-profile {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--secondary-cream);
+            margin-bottom: 20px;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: var(--secondary-lavender);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .user-profile h3 {
+            margin-bottom: 5px;
+            color: var(--primary-dark-blue);
+        }
+        
+        .user-profile p {
+            color: var(--primary-gray-blue);
+            font-size: 0.9rem;
+        }
+        
+        .super-user-badge {
+            background-color: var(--primary-orange);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        
+        .sidebar-right nav ul {
+            list-style: none;
+        }
+        
+        .sidebar-right nav li {
+            margin: 10px 0;
+        }
+        
+        .sidebar-right nav a {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            color: var(--primary-dark-blue);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        .sidebar-right nav a:hover {
+            background-color: var(--secondary-cream);
+        }
+        
+        .sidebar-right nav i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .sidebar-left {
+                width: 200px;
+            }
+            
+            .main-content {
+                margin-left: 200px;
+                margin-right: 220px;
+            }
+            
+            .sidebar-right {
+                width: 220px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar-left {
+                width: 70px;
+            }
+            
+            .sidebar-left .logo h1,
+            .sidebar-left nav span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                margin-right: 200px;
+            }
+            
+            .sidebar-right {
+                width: 200px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra lateral izquierda - Navegación -->
+    <div class="sidebar-left">
+        <div class="logo">
+            <h1>INVENTARIO</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#">📋 Vista Lector</a></li>
+                <li><a href="#">📊 Gestión Inventario</a></li>
+                <li><a href="#" class="active">👥 Gestión Usuarios</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="main-content">
+        <div class="header">
+            <h2>Gestión de Usuarios - Super User/Root</h2>
+            <div class="search-bar">
+                <input type="text" placeholder="Buscar usuarios...">
+                <button>Buscar</button>
+            </div>
+        </div>
+        
+        <!-- Selector de módulos -->
+        <div class="module-selector">
+            <div class="module-option active" id="module-usuarios">Usuarios Registrados</div>
+            <div class="module-option" id="module-solicitudes">Solicitudes de Acceso</div>
+            <div class="module-option" id="module-log">Registro de Actividades</div>
+        </div>
+        
+        <!-- Panel de usuarios registrados -->
+        <div class="management-panel" id="panel-usuarios">
+            <div class="panel-header">
+                <h3>Usuarios del Sistema</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
+                    <button class="btn btn-secondary">Exportar CSV</button>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Departamento</th>
+                        <th>Rol</th>
+                        <th>Fecha Registro</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>USER-001</td>
+                        <td>Roberto Alveal</td>
+                        <td>roberto.alveal@coyahue.cl</td>
+                        <td>TI</td>
+                        <td><span class="role-badge role-root">Super Root</span></td>
+                        <td>15/03/2022</td>
+                        <td><span class="status-badge status-approved">Activo</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn">Editar</button>
+                            <button class="action-btn delete-btn" disabled>Eliminar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>USER-002</td>
+                        <td>Alonso Rodríguez</td>
+                        <td>alonso.rodriguez@coyahue.cl</td>
+                        <td>TI</td>
+                        <td><span class="role-badge role-admin">Administrador</span></td>
+                        <td>20/04/2022</td>
+                        <td><span class="status-badge status-approved">Activo</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn">Editar</button>
+                            <button class="action-btn delete-btn">Eliminar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>USER-003</td>
+                        <td>María González</td>
+                        <td>maria.gonzalez@coyahue.cl</td>
+                        <td>TI</td>
+                        <td><span class="role-badge role-admin">Administrador</span></td>
+                        <td>05/06/2022</td>
+                        <td><span class="status-badge status-approved">Activo</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn">Editar</button>
+                            <button class="action-btn delete-btn">Eliminar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>USER-004</td>
+                        <td>Carlos Mendoza</td>
+                        <td>carlos.mendoza@coyahue.cl</td>
+                        <td>Contabilidad</td>
+                        <td><span class="role-badge role-lector">Lector</span></td>
+                        <td>10/07/2022</td>
+                        <td><span class="status-badge status-approved">Activo</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn">Editar</button>
+                            <button class="action-btn delete-btn">Eliminar</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>USER-005</td>
+                        <td>Ana Silva</td>
+                        <td>ana.silva@coyahue.cl</td>
+                        <td>Ventas</td>
+                        <td><span class="role-badge role-lector">Lector</span></td>
+                        <td>15/08/2022</td>
+                        <td><span class="status-badge status-approved">Activo</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn edit-btn">Editar</button>
+                            <button class="action-btn delete-btn">Eliminar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Panel de solicitudes de acceso -->
+        <div class="management-panel" id="panel-solicitudes" style="display: none;">
+            <div class="panel-header">
+                <h3>Solicitudes de Acceso Pendientes</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary">Exportar CSV</button>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID Solicitud</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Departamento</th>
+                        <th>Rol Solicitado</th>
+                        <th>Fecha Solicitud</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>REQ-001</td>
+                        <td>Felipe Ortega</td>
+                        <td>felipe.ortega@coyahue.cl</td>
+                        <td>Recursos Humanos</td>
+                        <td><span class="role-badge role-lector">Lector</span></td>
+                        <td>10/09/2023</td>
+                        <td class="action-cell">
+                            <button class="action-btn approve-btn">Aprobar</button>
+                            <button class="action-btn reject-btn">Rechazar</button>
+                            <button class="action-btn edit-btn">Ver Detalles</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>REQ-002</td>
+                        <td>Javier Rojas</td>
+                        <td>javier.rojas@coyahue.cl</td>
+                        <td>Marketing</td>
+                        <td><span class="role-badge role-lector">Lector</span></td>
+                        <td>12/09/2023</td>
+                        <td class="action-cell">
+                            <button class="action-btn approve-btn">Aprobar</button>
+                            <button class="action-btn reject-btn">Rechazar</button>
+                            <button class="action-btn edit-btn">Ver Detalles</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>REQ-003</td>
+                        <td>Laura Méndez</td>
+                        <td>laura.mendez@coyahue.cl</td>
+                        <td>Ventas</td>
+                        <td><span class="role-badge role-admin">Administrador</span></td>
+                        <td>14/09/2023</td>
+                        <td class="action-cell">
+                            <button class="action-btn approve-btn">Aprobar</button>
+                            <button class="action-btn reject-btn">Rechazar</button>
+                            <button class="action-btn edit-btn">Ver Detalles</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Panel de registro de actividades -->
+        <div class="management-panel" id="panel-log" style="display: none;">
+            <div class="panel-header">
+                <h3>Registro de Actividades del Sistema</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary">Exportar CSV</button>
+                    <button class="btn btn-warning">Limpiar Registro</button>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Fecha/Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción</th>
+                        <th>Detalles</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>15/09/2023 10:30</td>
+                        <td>Alonso Rodríguez</td>
+                        <td>Actualización de activo</td>
+                        <td>ACT-003 - Cambio de estado a "En Reparación"</td>
+                        <td>192.168.1.105</td>
+                    </tr>
+                    <tr>
+                        <td>15/09/2023 09:15</td>
+                        <td>María González</td>
+                        <td>Creación de activo</td>
+                        <td>Nuevo activo ACT-025 - Laptop Dell</td>
+                        <td>192.168.1.102</td>
+                    </tr>
+                    <tr>
+                        <td>14/09/2023 16:45</td>
+                        <td>Roberto Alveal</td>
+                        <td>Modificación de usuario</td>
+                        <td>USER-004 - Cambio de rol a "Lector"</td>
+                        <td>192.168.1.100</td>
+                    </tr>
+                    <tr>
+                        <td>14/09/2023 14:20</td>
+                        <td>Carlos Mendoza</td>
+                        <td>Generación de reporte</td>
+                        <td>Reporte de activos por departamento</td>
+                        <td>192.168.1.110</td>
+                    </tr>
+                    <tr>
+                        <td>13/09/2023 11:05</td>
+                        <td>Ana Silva</td>
+                        <td>Consulta de activos</td>
+                        <td>Búsqueda con filtros: Tipo=Celular, Estado=Activo</td>
+                        <td>192.168.1.115</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Formulario para nuevo usuario -->
+        <div class="user-form" id="form-usuario">
+            <div class="form-header">
+                <h3>Nuevo Usuario</h3>
+                <button class="btn btn-danger" id="btn-cerrar-form">X</button>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre Completo</label>
+                    <input type="text" id="nombre" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Corporativo</label>
+                    <input type="email" id="email" placeholder="usuario@coyahue.cl">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="departamento">Departamento</label>
+                    <select id="departamento">
+                        <option value="">Seleccione departamento</option>
+                        <option value="ti">Tecnologías de Información</option>
+                        <option value="contabilidad">Contabilidad</option>
+                        <option value="ventas">Ventas</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="rh">Recursos Humanos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rol">Rol de Usuario</label>
+                    <select id="rol">
+                        <option value="lector">Lector</option>
+                        <option value="admin">Administrador</option>
+                        <option value="root">Root (Super Usuario)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="telefono">Teléfono</label>
+                    <input type="tel" id="telefono" placeholder="+56 9 1234 5678">
+                </div>
+                <div class="form-group">
+                    <label for="fecha-ingreso">Fecha de Ingreso</label>
+                    <input type="date" id="fecha-ingreso">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn btn-secondary" id="btn-cancelar">Cancelar</button>
+                <button class="btn btn-success">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Barra lateral derecha -->
+    <div class="sidebar-right">
+        <div class="user-profile">
+            <div class="user-avatar">👑</div>
+            <h3>Roberto Alveal</h3>
+            <p>Rol: Super Root</p>
+            <p>Departamento: TI</p>
+            <div class="super-user-badge">SUPER USUARIO</div>
+        </div>
+        
+        <nav>
+            <ul>
+                <li><a href="#"><i>👤</i> Perfil de Usuario</a></li>
+                <li><a href="#"><i>⚙️</i> Ajustes del Sistema</a></li>
+                <li><a href="#"><i>🎫</i> Tickets</a></li>
+                <li><a href="#"><i>📊</i> Dashboard</a></li>
+                <li><a href="#"><i>🔒</i> Seguridad</a></li>
+                <li><a href="#"><i>❓</i> Ayuda</a></li>
+                <li><a href="#"><i>🚪</i> Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+        
+        <div style="margin-top: 30px; padding: 15px; background-color: var(--secondary-cream); border-radius: 8px;">
+            <h4 style="margin-bottom: 10px; color: var(--primary-dark-blue);">Estadísticas del Sistema</h4>
+            <p style="font-size: 0.9rem; color: var(--primary-gray-blue);">
+                Usuarios activos: 24<br>
+                Solicitudes pendientes: 3<br>
+                Activos registrados: 247<br>
+                Actividades hoy: 12
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Funcionalidad para cambiar entre módulos
+        document.getElementById('module-usuarios').addEventListener('click', function() {
+            document.getElementById('module-usuarios').classList.add('active');
+            document.getElementById('module-solicitudes').classList.remove('active');
+            document.getElementById('module-log').classList.remove('active');
+            document.getElementById('panel-usuarios').style.display = 'block';
+            document.getElementById('panel-solicitudes').style.display = 'none';
+            document.getElementById('panel-log').style.display = 'none';
+        });
+        
+        document.getElementById('module-solicitudes').addEventListener('click', function() {
+            document.getElementById('module-solicitudes').classList.add('active');
+            document.getElementById('module-usuarios').classList.remove('active');
+            document.getElementById('module-log').classList.remove('active');
+            document.getElementById('panel-solicitudes').style.display = 'block';
+            document.getElementById('panel-usuarios').style.display = 'none';
+            document.getElementById('panel-log').style.display = 'none';
+        });
+        
+        document.getElementById('module-log').addEventListener('click', function() {
+            document.getElementById('module-log').classList.add('active');
+            document.getElementById('module-usuarios').classList.remove('active');
+            document.getElementById('module-solicitudes').classList.remove('active');
+            document.getElementById('panel-log').style.display = 'block';
+            document.getElementById('panel-usuarios').style.display = 'none';
+            document.getElementById('panel-solicitudes').style.display = 'none';
+        });
+        
+        // Funcionalidad para mostrar/ocultar formulario
+        document.getElementById('btn-nuevo-usuario').addEventListener('click', function() {
+            document.getElementById('form-usuario').style.display = 'block';
+        });
+        
+        document.getElementById('btn-cerrar-form').addEventListener('click', function() {
+            document.getElementById('form-usuario').style.display = 'none';
+        });
+        
+        document.getElementById('btn-cancelar').addEventListener('click', function() {
+            document.getElementById('form-usuario').style.display = 'none';
+        });
+        
+        // Deshabilitar eliminación para Super Root
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            if (btn.disabled) {
+                btn.title = "No se puede eliminar al Super Root";
+            }
+        });
+    </script>
+</body>
+</html>
